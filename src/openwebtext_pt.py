@@ -275,7 +275,7 @@ def main(args: OpenWebTextTrainingArgs):
                 )
     
     if args.pretrain and args.pretrained_from_owt:
-        model = load_model(model, args.model_path, args.model_file, pretrain_pos='pos' in args.reinit_modules, strict=False, truncate_embed=True)
+        model = load_model(model, args.model_path, args.model_file, pretrain_pos='pos' in args.reinit_modules, strict=False)
         log.info('Pretrained model loaded from checkpoint')
         log.info(f"Warning: Strict loading is disabled for pretrained model but vocab is the same / encoding is the same")
         log.info(f"Warning: Embedding weights are truncated to 50257")

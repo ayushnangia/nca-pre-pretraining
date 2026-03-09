@@ -16,7 +16,7 @@ python src/language_train.py \
     --pretrain 1 \
     --pt_vocab_size 64000 \
     --vocab_size 64000 \
-    --reinit_modules embed none \
+    --reinit_modules none \
     --reinit_layer_idxs 0 24 \
     --seq_len 1024 \
     --lr 1e-5 \

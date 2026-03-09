@@ -98,21 +98,21 @@ class CustomLlamaModel(nn.Module):
         self.seq_length = config.max_position_embeddings
         self.attn = attn
 
-        self.wte = _llama.embed_tokens
+        self.input_proj = _llama.embed_tokens
         self.wpe = _llama.rotary_emb # RoPE embeddings
         self.layers = _llama.layers
         self.norm = _llama.norm
         self.output_proj = nn.Linear(self.n_embd, self.output_vocab)
 
         if weight_tying:
-            self.wte.weight = self.output_proj.weight # weight-tying
+            self.input_proj.weight = self.output_proj.weight # weight-tying
 
     def forward(self, input_ids, 
                 attention_mask=None, 
                 output_attentions=False):
         
         device = input_ids.device
-        input_embeds = self.wte(input_ids)
+        input_embeds = self.input_proj(input_ids)
 
         position_ids = torch.arange(input_embeds.shape[1], device=device).unsqueeze(0)
         position_embeds = self.wpe(input_embeds, position_ids)
@@ -140,7 +140,7 @@ class CustomLlamaModel(nn.Module):
         return logits
 
     def freeze(self):
-        for param in self.wte.parameters():
+        for param in self.input_proj.parameters():
             param.requires_grad = False
         for param in self.wpe.parameters():
             param.requires_grad = False
@@ -148,7 +148,7 @@ class CustomLlamaModel(nn.Module):
             param.requires_grad = False
 
     def unfreeze(self):
-        for param in self.wte.parameters():
+        for param in self.input_proj.parameters():
             param.requires_grad = True
         for param in self.wpe.parameters():
             param.requires_grad = True
@@ -447,7 +447,7 @@ class DownstreamLlamaLM(BaseDownstreamLlamaModel):
         else:
             assert model.vocab_size == vocab_size, f"Model vocabulary size {model.vocab_size} does not match provided vocabulary size {vocab_size}"
             print(f'Using model input and output projections (init)')
-            self.input_proj = model.wte
+            self.input_proj = model.input_proj
             self.output_proj = model.output_proj
 
         if self.weight_tying:
@@ -526,37 +526,7 @@ class DownstreamLlamaLM(BaseDownstreamLlamaModel):
         for param in self.output_proj.parameters():
             param.requires_grad = True
         print('Unfreezing input and output projections')
-    
-    """
-    def forward(self, input_ids, attention_mask=None, output_attentions=False):
-        device = input_ids.device
-        input_embeds = self.input_proj(input_ids)
 
-        position_ids = torch.arange(input_embeds.shape[1], device=device).unsqueeze(0)
-        position_embeds = self.wpe(input_embeds, position_ids)
-
-        hidden_states = input_embeds
-
-        attentions = []
-
-        for layer in self.layers[:self.n_layer]:
-            out = layer(hidden_states,
-                        attention_mask=attention_mask,
-                        position_ids=position_ids,
-                        position_embeddings=position_embeds,
-                        output_attentions=output_attentions)
-            hidden_states = out[0]
-
-            if output_attentions:
-                attentions.append(out[1])
-
-        hidden_states = self.norm(hidden_states)
-        logits = self.output_proj(hidden_states)
-
-        if output_attentions:
-            return logits, attentions
-        return logits
-    """
     
     def forward(self, 
         input_ids: torch.Tensor,

@@ -18,7 +18,7 @@ python src/language_train.py \
     --max_samples 350 \
     --pt_vocab_size 50257 \
     --vocab_size 50257 \
-    --reinit_modules embed none \
+    --reinit_modules none \
     --reinit_layer_idxs 0 24 \
     --seq_len 1024 \
     --lr 5e-6 \
