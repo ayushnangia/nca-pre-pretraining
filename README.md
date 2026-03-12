@@ -1,6 +1,6 @@
 ## Training Language Models via Neural Cellular Automata
 
-This repository provides an implementation of the paper, [Training Language Models via Neural Cellular Automata]().
+This repository provides an implementation of the paper, [Training Language Models via Neural Cellular Automata](https://arxiv.org/abs/2603.10055).
 
 Pre-training large language models on natural language is costly, biased, and entangles knowledge with reasoning. We propose **NCA pre-pre-training**: first training a transformer on dynamics from neural cellular automata (NCA), then continuing with standard language pre-training. With only 164M NCA tokens, this improves downstream language modeling by up to 6% and accelerates convergence by up to 1.6× — outperforming 1.6B tokens of natural language (C4) as a pre-pre-training signal.
 
