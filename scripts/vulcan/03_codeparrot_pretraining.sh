@@ -5,7 +5,7 @@
 # Alternative to OWT — for code domain downstream tasks.
 # Uses streaming HF dataset (no preprocessing needed).
 # ============================================================
-#SBATCH --account=aip-FIXME
+#SBATCH --account=aip-rgrosse
 #SBATCH --job-name=code-pt
 #SBATCH --gpus-per-node=l40s:1
 #SBATCH --cpus-per-task=6
@@ -16,7 +16,7 @@
 
 set -e
 
-module load python/3.11 cuda/12.2
+module load python/3.11 cuda/12.6 scipy-stack arrow opencv
 source "$HOME/nca-ppt-env/bin/activate"
 
 export TOKENIZERS_PARALLELISM=false

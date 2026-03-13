@@ -127,10 +127,13 @@ class CustomLlamaModel(nn.Module):
                         position_ids=position_ids,
                         position_embeddings=position_embeds,
                         output_attentions=output_attentions)
-            hidden_states = out[0]
-
-            if output_attentions:
-                attentions.append(out[1])
+            # Transformers >=5.x returns a plain tensor; older versions return a tuple
+            if isinstance(out, torch.Tensor):
+                hidden_states = out
+            else:
+                hidden_states = out[0]
+                if output_attentions:
+                    attentions.append(out[1])
 
         hidden_states = self.norm(hidden_states)
         logits = self.output_proj(hidden_states)
@@ -412,10 +415,12 @@ class DownstreamLlamaModel(BaseDownstreamLlamaModel):
                         position_ids=position_ids,
                         position_embeddings=position_embeds,
                         output_attentions=output_attentions)
-            hidden_states = out[0]
-
-            if output_attentions:
-                attentions.append(out[1])
+            if isinstance(out, torch.Tensor):
+                hidden_states = out
+            else:
+                hidden_states = out[0]
+                if output_attentions:
+                    attentions.append(out[1])
 
         hidden_states = self.norm(hidden_states)
         logits = self.output_proj(hidden_states)
@@ -575,7 +580,10 @@ class DownstreamLlamaLM(BaseDownstreamLlamaModel):
                 use_cache = use_cache,
                 output_attentions = output_attentions
             )
-            hidden_states = out[0]
+            if isinstance(out, torch.Tensor):
+                hidden_states = out
+            else:
+                hidden_states = out[0]
 
             if output_attentions:
                 attentions.append(out[1])

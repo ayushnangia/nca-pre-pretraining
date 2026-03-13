@@ -10,7 +10,7 @@ ENV_DIR="$HOME/nca-ppt-env"
 
 echo "=== Setting up NCA pre-pre-training environment on Vulcan ==="
 
-module load python/3.11 cuda/12.2 scipy-stack
+module load python/3.11 cuda/12.6 scipy-stack arrow opencv
 
 # Create virtualenv
 if [ -d "$ENV_DIR" ]; then

@@ -336,6 +336,15 @@ def init_args(args: NCATrainingArgs) -> NCATrainingArgs:
     return args
 
 def main(args: NCATrainingArgs):
+    # --- DDP setup ---
+    args.local_rank = int(os.environ.get("LOCAL_RANK", 0))
+    args.world_size = int(os.environ.get("WORLD_SIZE", 1))
+    args.is_main = args.local_rank == 0
+    if args.world_size > 1:
+        dist.init_process_group(backend="nccl")
+        torch.cuda.set_device(args.local_rank)
+        args.device = f"cuda:{args.local_rank}"
+
     # setup seed
     set_seed(args.seed)
     args = init_args(args)
@@ -350,7 +359,9 @@ def main(args: NCATrainingArgs):
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    # initialize wandb
+    # initialize wandb (only on rank 0)
+    if not args.is_main:
+        args.wandb_enable = False
     if args.wandb_enable:
         if args.wandb_resume_run_id:
             wandb_run = wandb.init(
@@ -469,8 +480,8 @@ def main(args: NCATrainingArgs):
         compiled_model = model
 
     compiled_model = compiled_model.to(args.device)
-    if torch.cuda.device_count() > 1:
-        compiled_model = DP(compiled_model)
+    if int(os.environ.get("WORLD_SIZE", 1)) > 1:
+        compiled_model = DDP(compiled_model, device_ids=[args.local_rank])
 
     # training loop
     current_loss = 0.0
@@ -622,10 +633,11 @@ def main(args: NCATrainingArgs):
                     best_val_loss = val_loss
                     best_val_loss_el = val_loss
 
-                    save_checkpoint(epoch+1, count, model, optimizer, scheduler,
-                                    best_val_loss, best_val_loss_el, metrics, args.save_dir, best=True, total_iterations=total_iterations)
-                    
-                    delete_old_checkpoint(args.save_dir)
+                    if args.is_main:
+                        save_model = model.module if hasattr(model, 'module') else model
+                        save_checkpoint(epoch+1, count, save_model, optimizer, scheduler,
+                                        best_val_loss, best_val_loss_el, metrics, args.save_dir, best=True, total_iterations=total_iterations)
+                        delete_old_checkpoint(args.save_dir)
                     
                 current_loss = 0.0
                 count = 0
@@ -635,16 +647,18 @@ def main(args: NCATrainingArgs):
         epoch_loss = epoch_loss / epoch_count
         log.info(f"[Epoch {epoch+1}] train loss: {epoch_loss}")
 
-        if(args.interval_save and (epoch+1) in args.intervals):
-            save_checkpoint(epoch+1, count, model, optimizer, scheduler,
-                            best_val_loss, best_val_loss_el, metrics, args.interval_save_path, total_iterations=total_iterations)
-        
-        save_checkpoint(epoch+1, count, model, optimizer, scheduler,
-                            best_val_loss, best_val_loss_el, metrics, args.save_dir, total_iterations=total_iterations)
-        delete_old_checkpoint(args.save_dir)
+        if args.is_main:
+            save_model = model.module if hasattr(model, 'module') else model
+            if(args.interval_save and (epoch+1) in args.intervals):
+                save_checkpoint(epoch+1, count, save_model, optimizer, scheduler,
+                                best_val_loss, best_val_loss_el, metrics, args.interval_save_path, total_iterations=total_iterations)
 
-        if os.path.exists(args.metrics_path):
-            os.remove(args.metrics_path)
+            save_checkpoint(epoch+1, count, save_model, optimizer, scheduler,
+                                best_val_loss, best_val_loss_el, metrics, args.save_dir, total_iterations=total_iterations)
+            delete_old_checkpoint(args.save_dir)
+
+            if os.path.exists(args.metrics_path):
+                os.remove(args.metrics_path)
 
         os.makedirs(os.path.dirname(args.metrics_path), exist_ok=True)
 
@@ -655,6 +669,9 @@ def main(args: NCATrainingArgs):
 
         epoch_loss = 0.0
         epoch_count = 0
+
+    if args.world_size > 1:
+        dist.destroy_process_group()
 
 def eval_main(args: NCATrainingArgs):
     # model evaluation and visualizations

@@ -5,7 +5,7 @@
 # 1 epoch, lr=5e-6.
 # PREREQUISITE: Phase 2 checkpoint (OWT pre-trained)
 # ============================================================
-#SBATCH --account=aip-FIXME
+#SBATCH --account=aip-rgrosse
 #SBATCH --job-name=ft-bbl
 #SBATCH --gpus-per-node=l40s:1
 #SBATCH --cpus-per-task=6
@@ -15,7 +15,7 @@
 
 set -e
 
-module load python/3.11 cuda/12.2
+module load python/3.11 cuda/12.6 scipy-stack arrow opencv
 source "$HOME/nca-ppt-env/bin/activate"
 
 export TOKENIZERS_PARALLELISM=false

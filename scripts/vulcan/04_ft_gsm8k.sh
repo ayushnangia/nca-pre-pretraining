@@ -5,7 +5,7 @@
 # 10 epochs, lr=1e-5, chain-of-thought traces.
 # PREREQUISITE: Phase 2 checkpoint (OWT or math pre-trained)
 # ============================================================
-#SBATCH --account=aip-FIXME
+#SBATCH --account=aip-rgrosse
 #SBATCH --job-name=ft-gsm8k
 #SBATCH --gpus-per-node=l40s:1
 #SBATCH --cpus-per-task=6
@@ -15,7 +15,7 @@
 
 set -e
 
-module load python/3.11 cuda/12.2
+module load python/3.11 cuda/12.6 scipy-stack arrow opencv
 source "$HOME/nca-ppt-env/bin/activate"
 
 export TOKENIZERS_PARALLELISM=false

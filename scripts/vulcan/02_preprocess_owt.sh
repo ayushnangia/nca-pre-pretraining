@@ -6,7 +6,7 @@
 # Produces train.bin and test.bin in $SCRATCH/nca-ppt/data/owt/
 # This is a CPU job — no GPU needed.
 # ============================================================
-#SBATCH --account=aip-FIXME
+#SBATCH --account=aip-rgrosse
 #SBATCH --job-name=preprocess-owt
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=64000M
@@ -15,7 +15,7 @@
 
 set -e
 
-module load python/3.11
+module load python/3.11 scipy-stack arrow
 source "$HOME/nca-ppt-env/bin/activate"
 
 CODE_DIR="$HOME/nca-pre-pretraining"

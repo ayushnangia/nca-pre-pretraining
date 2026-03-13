@@ -7,7 +7,7 @@
 #
 # PREREQUISITE: Phase 1 checkpoint + preprocessed OWT data (.bin)
 # ============================================================
-#SBATCH --account=aip-FIXME
+#SBATCH --account=aip-rgrosse
 #SBATCH --job-name=owt-pt
 #SBATCH --gpus-per-node=l40s:1
 #SBATCH --cpus-per-task=6
@@ -19,7 +19,7 @@
 set -e
 
 # --- Environment ---
-module load python/3.11 cuda/12.2
+module load python/3.11 cuda/12.6 scipy-stack arrow opencv
 source "$HOME/nca-ppt-env/bin/activate"
 
 export TOKENIZERS_PARALLELISM=false
