@@ -73,7 +73,7 @@ class NCA_Tokenizer(Tokenizer):
         tokens = tokens.reshape(B, -1)
         target = target.reshape(B, -1)
 
-        return torch.tensor(tokens), torch.tensor(target)
+        return torch.as_tensor(np.array(tokens)), torch.as_tensor(np.array(target))
 
     def to_colors(self, x: int) -> jnp.ndarray:
         powers = (self.num_colors ** jnp.arange(self.patch * self.patch))

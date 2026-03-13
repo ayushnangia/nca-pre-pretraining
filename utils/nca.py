@@ -9,6 +9,7 @@ from jax.random import split
 
 import io
 import gzip
+import numpy as np
 from typing import Callable
 
 import matplotlib.colors as mcolors
@@ -326,7 +327,7 @@ def compute_rule_gzip_batch(
         grid_len = (H*W)//(tokenizer.patch**2)+2
         seq = seq.reshape(B, -1, grid_len)
         seq = seq[:, :, 1:-1]
-        seq = jnp.array(seq).reshape(B, -1)
+        seq = np.asarray(seq.cpu()).reshape(B, -1)
         score = []
         for b in range(B):
             byte_data = seq[b].tobytes()
